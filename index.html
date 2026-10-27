@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Світлик — знає, коли дали світло</title>
-<meta name="description" content="Маленький пристрій біля інвертора Deye: бачить напругу кожної фази й одразу пише в Telegram та перемикає датчики в розумному домі через Matter. Шукаємо бета-тестувальників.">
+<meta name="description" content="Маленький пристрій біля інвертора Deye: бачить, чи є напруга в мережі, й одразу пише в Telegram та перемикає датчики в розумному домі через Matter. Шукаємо бета-тестувальників.">
 <meta property="og:title" content="Світлик — знає, коли дали світло">
 <meta property="og:description" content="Пристрій біля інвертора Deye: Telegram-бот і датчики Matter для Apple Дім та інших систем. Без хмари.">
 <meta property="og:type" content="website">
@@ -49,20 +49,41 @@ h3{font-size:20px;font-weight:500;line-height:1.25}
 p{margin:0}
 .lead{font-size:clamp(18px,2vw,20px);color:var(--muted);max-width:56ch}
 section{padding:96px 0}
-.btn{display:inline-flex;align-items:center;gap:10px;padding:14px 22px;border-radius:999px;font-weight:600;font-size:16px;text-decoration:none;border:0;cursor:pointer;transition:transform .15s ease}
+.btn{display:inline-flex;align-items:center;gap:10px;padding:14px 22px;border-radius:999px;font-weight:600;font-size:16px;text-decoration:none;border:0;cursor:pointer;transition:transform .15s ease,box-shadow .15s ease,filter .15s ease}
 .btn:active{transform:scale(.97)}
+/* Наведення: лише для миші й трекпада, щоб на телефоні ефект не «залипав» після дотику */
+@media (hover:hover){
+  /* Світіння, як у світлодіода: м'яке сяйво кольору кнопки */
+  .btn:hover{box-shadow:0 0 18px 2px rgba(20,26,46,.35)}
+  .btn-tg:hover{box-shadow:0 0 22px 4px rgba(42,158,224,.55)}
+  .c-ig:hover{box-shadow:0 0 22px 4px rgba(220,39,67,.45)}
+  .logo:hover{opacity:.8}
+  summary:hover{color:var(--muted)}
+  summary:hover::after{color:var(--ink)}
+  .switch:hover .track{filter:brightness(1.12)}
+  .switch:hover .knob{box-shadow:0 3px 10px rgba(0,0,0,.35)}
+  footer .social a:hover{color:var(--ink);text-underline-offset:4px}
+}
+@media (prefers-reduced-motion:reduce){.btn:active{transform:none}}
 .btn-tg{background:var(--tg);color:#fff}
 .btn-tg svg{width:20px;height:20px}
 
 /* ------------------------------------------------ Верх */
-header.top{position:absolute;inset:0 0 auto 0;z-index:5}
+header.top{position:fixed;inset:0 0 auto 0;z-index:20;transition:background-color .3s ease,box-shadow .3s ease,color 1.2s ease}
+/* Після прокручування — напівпрозора смуга з розмиттям; над темним екраном «світла немає» — темна */
+header.top.scrolled{background:rgba(243,245,247,.82);-webkit-backdrop-filter:saturate(1.4) blur(12px);backdrop-filter:saturate(1.4) blur(12px);box-shadow:0 1px 0 var(--line)}
+header.top.on-dark{color:#e8ecf5}
+header.top.scrolled.on-dark{background:rgba(20,26,46,.78);box-shadow:0 1px 0 rgba(255,255,255,.08)}
+[id]{scroll-margin-top:88px}
 header.top .wrap{display:flex;align-items:center;justify-content:space-between;height:76px}
-.logo{display:flex;align-items:center;gap:10px;font-family:Unbounded,sans-serif;font-weight:700;font-size:20px;text-decoration:none}
+.logo{display:flex;align-items:center;gap:10px;font-family:Unbounded,sans-serif;font-weight:700;font-size:20px;text-decoration:none;transition:opacity .15s}
 .logo i{width:30px;height:20px;border-radius:7px;background:var(--case);position:relative}
 .logo i::after{content:"";position:absolute;right:5px;top:6px;width:8px;height:8px;border-radius:50%;background:var(--led,var(--on));box-shadow:0 0 8px var(--led,var(--on));transition:background .6s,box-shadow .6s}
 header.top nav{display:flex;gap:28px;align-items:center;font-size:15px}
-header.top nav a.link{text-decoration:none;opacity:.8}
+header.top nav a.link{position:relative;text-decoration:none;opacity:.8;transition:opacity .15s}
+header.top nav a.link::after{content:"";position:absolute;left:0;right:0;bottom:-5px;height:2px;border-radius:2px;background:currentColor;transform:scaleX(0);transform-origin:left;transition:transform .2s ease}
 header.top nav a.link:hover{opacity:1}
+@media (hover:hover){header.top nav a.link:hover::after{transform:scaleX(1)}}
 header.top .btn{padding:10px 18px;font-size:15px}
 header.top .short{display:none}
 @media (max-width:860px){header.top nav a.link{display:none}}
@@ -73,7 +94,6 @@ header.top .short{display:none}
 .hero::before{content:"";position:absolute;inset:-20% -10% auto auto;width:900px;height:900px;border-radius:50%;background:radial-gradient(closest-side,rgba(246,196,44,.45),rgba(246,196,44,0));opacity:1;transition:opacity 1.2s ease;pointer-events:none}
 body.is-off .hero{background:var(--night);color:#e8ecf5}
 body.is-off .hero::before{opacity:0}
-body.is-off header.top{color:#e8ecf5}
 .hero .wrap{position:relative;display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center}
 .hero h1{font-size:clamp(38px,6vw,72px);max-width:12ch}
 .hero .lead{margin-top:24px;color:inherit;opacity:.78}
@@ -197,7 +217,7 @@ body.is-off .switch .knob{left:4px}
 .faq .wrap{display:grid;grid-template-columns:.8fr 1.2fr;gap:64px}
 details{border-bottom:1px solid var(--line);padding:20px 0}
 details:first-child{border-top:1px solid var(--line)}
-summary{cursor:pointer;font-weight:600;font-size:18px;list-style:none;display:flex;justify-content:space-between;gap:20px}
+summary{transition:color .15s;cursor:pointer;font-weight:600;font-size:18px;list-style:none;display:flex;justify-content:space-between;gap:20px}
 summary::-webkit-details-marker{display:none}
 summary::after{content:"+";font-family:Unbounded,sans-serif;font-weight:500;transition:transform .2s}
 details[open] summary::after{transform:rotate(45deg)}
@@ -209,13 +229,23 @@ details p{margin-top:12px;color:var(--muted);max-width:62ch}
 .beta .wrap{display:grid;grid-template-columns:1.2fr .8fr;gap:48px;align-items:center}
 .beta h2{max-width:16ch}
 .beta p{margin-top:18px;max-width:52ch;font-size:18px}
+.beta .price strong{font-size:22px}
 .beta ul{margin:18px 0 0;padding-left:20px;font-size:17px;display:grid;gap:6px}
-.beta .btn{font-size:18px;padding:18px 28px;background:var(--ink);color:#fff;justify-self:start}
+.btn[hidden]{display:none}
+.beta .contacts{display:grid;gap:12px;justify-self:start;min-width:min(100%,300px)}
+.beta .btn{font-size:18px;padding:16px 26px;color:#fff;justify-content:flex-start}
+.beta .btn .handle{margin-left:auto;padding-left:12px;font-weight:400;font-size:15px;opacity:.8}
+.beta .c-tg{background:var(--ink)}
+.beta .c-ig{background:linear-gradient(45deg,#f09433,#dc2743 50%,#bc1888)}
 @media (max-width:860px){.beta .wrap{grid-template-columns:1fr}}
 
 footer{padding:40px 0;font-size:14px;color:var(--muted)}
 footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
 footer .made{display:inline-flex;align-items:center;gap:6px}
+footer .social{display:flex;gap:16px;width:100%}
+footer .social a{color:inherit;font-weight:600;transition:color .15s}
+footer .social a[hidden]{display:none}
+footer .social:not(:has(a:not([hidden]))){display:none}
 .heart{width:16px;height:15px;transform-origin:center;animation:beat 1.2s ease-in-out infinite}
 @keyframes beat{0%,40%,100%{transform:scale(1)}10%{transform:scale(1.25)}20%{transform:scale(1.05)}30%{transform:scale(1.2)}}
 @media (prefers-reduced-motion:reduce){.heart{animation:none}}
@@ -259,7 +289,7 @@ footer .made{display:inline-flex;align-items:center;gap:6px}
 </head>
 <body class="is-off" style="--led:var(--off)">
 
-<header class="top">
+<header class="top on-dark">
   <div class="wrap">
     <a class="logo" href="#"><i aria-hidden="true"></i>Світлик</a>
     <nav aria-label="Розділи">
@@ -279,10 +309,9 @@ footer .made{display:inline-flex;align-items:center;gap:6px}
   <div class="wrap">
     <div>
       <h1 id="hero-title">Знає, що дали світло, раніше за вас</h1>
-      <p class="lead">Маленький пристрій, який підключається до інвертора Deye. Бачить напругу на кожній фазі й одразу пише в Telegram, а в розумному домі перемикає датчики. Ніякої хмари і жодних «мабуть, дали»: він знає точно.</p>
+      <p class="lead">Маленький пристрій, який підключається до інвертора Deye. Бачить, чи є напруга в мережі, й одразу пише в Telegram, а в розумному домі перемикає датчики. Ніякої хмари і жодних «мабуть, дали»: він знає точно.</p>
       <div class="actions">
-        <a class="btn btn-tg js-tg" href="#beta"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M21.9 4.3 18.7 19.5c-.2 1.1-.9 1.3-1.8.8l-4.9-3.6-2.4 2.3c-.3.3-.5.5-1 .5l.3-5 9.1-8.2c.4-.4-.1-.6-.6-.2L6.2 13.2 1.4 11.7c-1-.3-1.1-1 .2-1.5L20.5 3c.9-.3 1.6.2 1.4 1.3Z"/></svg>Взяти участь у бета-тесті</a>
-        <span class="note">Для власників трифазних Deye</span>
+        <a class="btn btn-tg js-tg" href="#beta">Взяти участь у бета-тесті</a>
       </div>
     </div>
 
@@ -611,7 +640,7 @@ footer .made{display:inline-flex;align-items:center;gap:6px}
       </details>
       <details>
         <summary>Скільки коштує?</summary>
-        <p>Ціну оголосимо, коли почнемо продаж. Учасники бети дізнаються першими.</p>
+        <p>Для учасників бети — 500 грн. Платите один раз: жодних підписок і щомісячних платежів, бо Світлик працює без наших серверів. Це пристрій у корпусі, без кабелю і зарядки: підійде зарядка 5&nbsp;В від телефона з кабелем USB‑C, увімкнена в розетку, яку живить інвертор. Доставка Новою поштою — за тарифами перевізника. Ціну для продажу оголосимо пізніше.</p>
       </details>
     </div>
   </div>
@@ -622,32 +651,53 @@ footer .made{display:inline-flex;align-items:center;gap:6px}
   <div class="wrap">
     <div>
       <h2 id="beta-title">Шукаємо перших тестувальників</h2>
-      <p>Напишіть у Telegram і розкажіть коротко:</p>
+      <p>Напишіть нам у Telegram чи Instagram і розкажіть коротко:</p>
       <ul>
         <li>модель інвертора;</li>
         <li>яким розумним домом користуєтесь (Apple Дім, Google Home, Home Assistant…) і чи є в ньому хаб;</li>
         <li>місто.</li>
       </ul>
       <p>Від вас — кілька тижнів користування і чесний відгук про те, що незручно.</p>
+      <p class="price"><strong>500 грн</strong> для учасників бети, один раз і без підписок. З нас — Світлик, з вас — зарядка 5&nbsp;В і кабель USB‑C.</p>
     </div>
-    <a class="btn js-tg" href="#"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M21.9 4.3 18.7 19.5c-.2 1.1-.9 1.3-1.8.8l-4.9-3.6-2.4 2.3c-.3.3-.5.5-1 .5l.3-5 9.1-8.2c.4-.4-.1-.6-.6-.2L6.2 13.2 1.4 11.7c-1-.3-1.1-1 .2-1.5L20.5 3c.9-.3 1.6.2 1.4 1.3Z"/></svg>Написати в Telegram</a>
+    <div class="contacts">
+      <a class="btn c-tg" data-contact="telegram" href="#"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M21.9 4.3 18.7 19.5c-.2 1.1-.9 1.3-1.8.8l-4.9-3.6-2.4 2.3c-.3.3-.5.5-1 .5l.3-5 9.1-8.2c.4-.4-.1-.6-.6-.2L6.2 13.2 1.4 11.7c-1-.3-1.1-1 .2-1.5L20.5 3c.9-.3 1.6.2 1.4 1.3Z"/></svg>Telegram<span class="handle"></span></a>
+      <a class="btn c-ig" data-contact="instagram" href="#"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M7.5 2h9A5.5 5.5 0 0 1 22 7.5v9a5.5 5.5 0 0 1-5.5 5.5h-9A5.5 5.5 0 0 1 2 16.5v-9A5.5 5.5 0 0 1 7.5 2Zm0 2A3.5 3.5 0 0 0 4 7.5v9A3.5 3.5 0 0 0 7.5 20h9a3.5 3.5 0 0 0 3.5-3.5v-9A3.5 3.5 0 0 0 16.5 4h-9ZM12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10Zm0 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6Zm5.2-3.4a1.2 1.2 0 1 1 0 2.4 1.2 1.2 0 0 1 0-2.4Z"/></svg>Instagram<span class="handle"></span></a>
+    </div>
   </div>
 </section>
 </main>
 
 <footer>
   <div class="wrap">
+    <span class="social"><a data-contact="instagram-profile" href="#">Instagram</a> <a data-contact="threads" href="#">Threads</a></span>
     <span class="made">Світлик · зроблено в Україні <svg class="heart" viewBox="0 0 24 22" aria-hidden="true"><path fill="#e5484d" d="M12 21.4 10.6 20C5.4 15.4 2 12.3 2 8.5 2 5.4 4.4 3 7.5 3c1.7 0 3.4.8 4.5 2.1C13.1 3.8 14.8 3 16.5 3 19.6 3 22 5.4 22 8.5c0 3.8-3.4 6.9-8.6 11.5z"/></svg></span>
-    <span>Apple, HomePod, Apple TV — торговельні марки Apple Inc. Matter — торговельна марка Connectivity Standards Alliance. Google, Samsung SmartThings, Deye і Solarman — торговельні марки їхніх власників.</span>
+    <span>Apple, HomePod, Apple TV — торговельні марки Apple Inc. Matter — торговельна марка Connectivity Standards Alliance. Google, Samsung SmartThings, Deye, Solarman, Telegram, Instagram і Threads — торговельні марки їхніх власників.</span>
   </div>
 </footer>
 
 <script>
-/* ===== Налаштування: посилання на Telegram для бета-заявок ===== */
-const TELEGRAM_LINK = "https://t.me/YOUR_USERNAME";
+/* ===== Налаштування: куди писати з бета-заявками =====
+   telegram і instagram — логіни без @. Кнопка Instagram відкриває одразу чат (ig.me/m/…),
+   у футері — профіль Instagram і Threads (той самий логін). Порожнє значення ховає кнопку й посилання. */
+const CONTACTS = {
+  telegram: "",
+  instagram: ""
+};
 
-document.querySelectorAll(".js-tg").forEach(a => {
-  if (a.closest(".beta")) { a.href = TELEGRAM_LINK; a.target = "_blank"; a.rel = "noopener"; }
+const contactUrl = {
+  telegram: v => "https://t.me/" + v.replace(/^@/, ""),
+  instagram: v => "https://ig.me/m/" + v.replace(/^@/, ""),
+  "instagram-profile": v => "https://www.instagram.com/" + v.replace(/^@/, "") + "/",
+  threads: v => "https://www.threads.com/@" + v.replace(/^@/, "")
+};
+document.querySelectorAll("[data-contact]").forEach(a => {
+  const key = a.dataset.contact;
+  const v = (CONTACTS[key === "telegram" ? "telegram" : "instagram"] || "").trim(); // Threads і профіль — з логіна Instagram
+  if (!v) { a.hidden = true; return; }
+  a.href = contactUrl[key](v); a.target = "_blank"; a.rel = "noopener";
+  const h = a.querySelector(".handle");
+  if (h) h.textContent = "@" + v.replace(/^@/, "");
 });
 
 const states = {
@@ -671,10 +721,21 @@ const $ = id => document.getElementById(id);
 const sw = $("switch"), bubble = $("bubble");
 let on = true;
 
+/* Фіксований хедер: смуга після прокручування, світлий текст над темним головним екраном */
+const header = document.querySelector("header.top"), hero = document.querySelector(".hero");
+function updateHeader() {
+  const overHero = hero.getBoundingClientRect().bottom > header.offsetHeight;
+  header.classList.toggle("scrolled", window.scrollY > 8);
+  header.classList.toggle("on-dark", overHero && document.body.classList.contains("is-off"));
+}
+window.addEventListener("scroll", updateHeader, { passive: true });
+window.addEventListener("resize", updateHeader);
+
 function apply(next, animate = true) {
   on = next;
   const s = on ? states.on : states.off;
   document.body.classList.toggle("is-off", !on);
+  updateHeader();
   document.body.style.setProperty("--led", s.led);
   sw.setAttribute("aria-checked", String(on));
   $("switch-label").textContent = s.label;
