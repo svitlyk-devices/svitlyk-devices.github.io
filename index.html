@@ -675,7 +675,7 @@ function apply(next, animate = true) {
   on = next;
   const s = on ? states.on : states.off;
   document.body.classList.toggle("is-off", !on);
-  document.documentElement.style.setProperty("--led", s.led);
+  document.body.style.setProperty("--led", s.led);
   sw.setAttribute("aria-checked", String(on));
   $("switch-label").textContent = s.label;
   $("tile-grid").classList.toggle("active", on);
