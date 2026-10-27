@@ -1,0 +1,698 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Світлик — знає, коли дали світло</title>
+<meta name="description" content="Маленький пристрій біля інвертора Deye: бачить напругу кожної фази й одразу пише в Telegram та перемикає датчики в розумному домі через Matter. Шукаємо бета-тестувальників.">
+<meta property="og:title" content="Світлик — знає, коли дали світло">
+<meta property="og:description" content="Пристрій біля інвертора Deye: Telegram-бот і датчики Matter для Apple Дім та інших систем. Без хмари.">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#141a2e">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='4' y='14' width='56' height='36' rx='12' fill='%23f6c42c'/%3E%3Ccircle cx='44' cy='32' r='7' fill='%2322b07d'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Кольори пристрою */
+  --case:#f6c42c;        /* жовтий корпус */
+  --case-dark:#d9a514;
+  --on:#22b07d;          /* світлодіод: є світло */
+  --partial:#f2a33a;     /* не всі фази */
+  --off:#e5484d;         /* світла немає */
+  --lost:#8e6cf0;        /* інвертор не відповідає */
+  /* Сторінка */
+  --night:#141a2e;
+  --night-2:#1f2742;
+  --paper:#f3f5f7;
+  --ink:#18202f;
+  --muted:#5b6475;
+  --line:#dde2e8;
+  --white:#fff;
+  --tg:#2a9ee0;
+  --radius-l:28px;
+  --radius-s:12px;
+  --wrap:1120px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{margin:0;background:var(--paper);color:var(--ink);font:400 17px/1.6 "Golos Text",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+img,svg{display:block;max-width:100%}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--tg);outline-offset:3px;border-radius:6px}
+.wrap{max-width:var(--wrap);margin:0 auto;padding:0 24px}
+h1,h2,h3{font-family:Unbounded,"Golos Text",sans-serif;font-weight:700;line-height:1.12;margin:0;letter-spacing:-.01em}
+h2{font-size:clamp(28px,4vw,44px);max-width:18ch}
+h3{font-size:20px;font-weight:500;line-height:1.25}
+p{margin:0}
+.lead{font-size:clamp(18px,2vw,20px);color:var(--muted);max-width:56ch}
+section{padding:96px 0}
+.btn{display:inline-flex;align-items:center;gap:10px;padding:14px 22px;border-radius:999px;font-weight:600;font-size:16px;text-decoration:none;border:0;cursor:pointer;transition:transform .15s ease}
+.btn:active{transform:scale(.97)}
+.btn-tg{background:var(--tg);color:#fff}
+.btn-tg svg{width:20px;height:20px}
+
+/* ------------------------------------------------ Верх */
+header.top{position:absolute;inset:0 0 auto 0;z-index:5}
+header.top .wrap{display:flex;align-items:center;justify-content:space-between;height:76px}
+.logo{display:flex;align-items:center;gap:10px;font-family:Unbounded,sans-serif;font-weight:700;font-size:20px;text-decoration:none}
+.logo i{width:30px;height:20px;border-radius:7px;background:var(--case);position:relative}
+.logo i::after{content:"";position:absolute;right:5px;top:6px;width:8px;height:8px;border-radius:50%;background:var(--led,var(--on));box-shadow:0 0 8px var(--led,var(--on));transition:background .6s,box-shadow .6s}
+header.top nav{display:flex;gap:28px;align-items:center;font-size:15px}
+header.top nav a.link{text-decoration:none;opacity:.8}
+header.top nav a.link:hover{opacity:1}
+header.top .btn{padding:10px 18px;font-size:15px}
+header.top .short{display:none}
+@media (max-width:860px){header.top nav a.link{display:none}}
+@media (max-width:520px){header.top .long{display:none}header.top .short{display:inline}}
+
+/* ------------------------------------------------ Головний екран */
+.hero{position:relative;overflow:hidden;padding:150px 0 110px;color:var(--ink);background:var(--paper);transition:background-color 1.2s ease,color 1.2s ease}
+.hero::before{content:"";position:absolute;inset:-20% -10% auto auto;width:900px;height:900px;border-radius:50%;background:radial-gradient(closest-side,rgba(246,196,44,.45),rgba(246,196,44,0));opacity:1;transition:opacity 1.2s ease;pointer-events:none}
+body.is-off .hero{background:var(--night);color:#e8ecf5}
+body.is-off .hero::before{opacity:0}
+body.is-off header.top{color:#e8ecf5}
+.hero .wrap{position:relative;display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center}
+.hero h1{font-size:clamp(38px,6vw,72px);max-width:12ch}
+.hero .lead{margin-top:24px;color:inherit;opacity:.78}
+.hero .actions{margin-top:36px;display:flex;flex-wrap:wrap;gap:16px;align-items:center}
+.hero .note{font-size:14px;opacity:.7}
+
+.stage{position:relative;display:flex;flex-direction:column;align-items:center;gap:28px}
+.device{width:min(100%,440px);filter:drop-shadow(0 30px 40px rgba(20,26,46,.25))}
+body.is-off .device{filter:drop-shadow(0 30px 40px rgba(0,0,0,.5))}
+.device .led{fill:var(--led);transition:fill .5s}
+.device .glow{fill:var(--led);opacity:.55;transition:fill .5s}
+
+.bubble{align-self:stretch;max-width:380px;margin:0 auto;background:var(--white);color:var(--ink);border-radius:18px 18px 18px 6px;padding:14px 16px 10px;box-shadow:0 12px 30px rgba(20,26,46,.14);font-size:16px;line-height:1.45;transition:opacity .25s ease,transform .25s ease}
+.bubble .from{font-weight:600;color:var(--tg);font-size:14px;margin-bottom:4px}
+.bubble .time{text-align:right;font-size:12px;color:var(--muted);margin-top:2px}
+.bubble.swap{opacity:0;transform:translateY(8px)}
+.bubble pre{margin:0;font:inherit;white-space:pre-wrap}
+
+.switch{display:flex;align-items:center;gap:14px;font-weight:500;font-size:15px;background:none;border:0;color:inherit;cursor:pointer;padding:6px}
+.switch .track{width:64px;height:36px;border-radius:999px;background:var(--on);position:relative;transition:background .3s}
+.switch .knob{position:absolute;top:4px;left:32px;width:28px;height:28px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.25);transition:left .3s}
+body.is-off .switch .track{background:#525b77}
+body.is-off .switch .knob{left:4px}
+
+@media (max-width:860px){
+  .hero{padding:120px 0 80px}
+  .hero .wrap{grid-template-columns:1fr;gap:48px}
+}
+
+/* ------------------------------------------------ Дві мережі */
+.two .wrap{display:grid;grid-template-columns:1fr 1.1fr;gap:64px;align-items:center}
+.two p+p{margin-top:16px}
+.two .lead{margin-top:20px}
+.timeline{background:var(--white);border-radius:var(--radius-l);padding:32px 28px 24px;border:1px solid var(--line)}
+.timeline .row{display:grid;grid-template-columns:150px 1fr;gap:16px;align-items:center;margin-bottom:18px}
+.timeline .name{font-weight:600;font-size:15px;line-height:1.3}
+.timeline .name small{display:block;font-weight:400;color:var(--muted);font-size:13px}
+.bar{height:34px;border-radius:10px;display:flex;overflow:hidden;font-size:13px;font-weight:600;color:#fff}
+.bar span{display:block;line-height:34px;padding:0 10px;white-space:nowrap;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.bar .b-off{background:var(--off)}
+.bar .b-on{background:var(--on)}
+.bar .b-bat{background:var(--partial)}
+.axis{display:grid;grid-template-columns:150px 1fr;gap:16px;font-size:13px;color:var(--muted)}
+.axis div{display:flex;justify-content:space-between}
+.timeline .caption{margin-top:20px;font-size:14px;color:var(--muted);border-top:1px solid var(--line);padding-top:16px}
+@media (max-width:860px){
+  .two .wrap{grid-template-columns:minmax(0,1fr);gap:40px}
+  .timeline .row,.axis{grid-template-columns:96px minmax(0,1fr)}
+  .timeline{padding:24px 18px 20px}
+}
+
+/* ------------------------------------------------ Apple Дім */
+.home{background:var(--white)}
+.home .head{display:flex;justify-content:space-between;align-items:end;gap:32px;flex-wrap:wrap}
+.home .head .lead{max-width:46ch}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:48px;max-width:760px}
+.tile{border-radius:22px;padding:18px;min-height:150px;display:flex;flex-direction:column;justify-content:space-between;background:#e9ecf1;transition:background .5s,color .5s}
+.tile .ico{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:#d4d9e2;transition:background .5s}
+.tile .ico svg{width:22px;height:22px}
+.tile b{display:block;font-weight:600;font-size:16px;line-height:1.25}
+.tile small{font-size:14px;color:var(--muted)}
+.tile.active{background:#fff7d6;box-shadow:inset 0 0 0 1px #f0deaa}
+.tile.active .ico{background:var(--case)}
+
+@media (max-width:760px){
+  .tiles{grid-template-columns:1fr 1fr}
+}
+
+/* ------------------------------------------------ Telegram */
+.tg .wrap{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:start}
+.chat{background:#dfe9d6 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Ccircle cx='4' cy='4' r='1.5' fill='%23c9d8bd'/%3E%3C/svg%3E");border-radius:var(--radius-l);padding:22px 18px;display:flex;flex-direction:column;gap:10px}
+.msg{background:#fff;border-radius:16px 16px 16px 6px;padding:10px 14px 6px;max-width:88%;font-size:15px;line-height:1.45;box-shadow:0 1px 1px rgba(0,0,0,.08)}
+.msg pre{margin:0;font:inherit;white-space:pre-wrap}
+.msg .time{text-align:right;font-size:11px;color:var(--muted)}
+.msg.me{align-self:flex-end;background:#e3f8cf;border-radius:16px 16px 6px 16px}
+.day{align-self:center;background:rgba(0,0,0,.18);color:#fff;font-size:12px;padding:2px 10px;border-radius:999px}
+.list{list-style:none;padding:0;margin:28px 0 0;display:grid;gap:18px}
+.list li{padding-left:34px;position:relative}
+.list li::before{content:"";position:absolute;left:0;top:7px;width:14px;height:14px;border-radius:50%;background:var(--case);box-shadow:inset 0 0 0 3px var(--case-dark)}
+.list b{font-weight:600}
+@media (max-width:860px){.tg .wrap{grid-template-columns:1fr;gap:40px}}
+
+/* ------------------------------------------------ Сам пристрій */
+.hw{background:var(--night);color:#e8ecf5}
+.hw .lead{color:#aab3c8;margin-top:20px}
+.hw-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:64px;margin-top:56px;align-items:start}
+.specs{display:grid;grid-template-columns:1fr 1fr;gap:28px 32px}
+.specs h3{font-size:16px;color:var(--case);margin-bottom:6px}
+.specs p{color:#c3cadb;font-size:16px}
+.leds{background:var(--night-2);border-radius:var(--radius-l);padding:28px}
+.leds h3{font-size:16px;margin-bottom:18px}
+.leds ul{list-style:none;margin:0;padding:0;display:grid;gap:14px}
+.leds li{display:flex;gap:14px;align-items:center;font-size:15px;color:#c3cadb}
+.dot{flex:none;width:16px;height:16px;border-radius:50%;background:var(--c);box-shadow:0 0 12px var(--c)}
+.dot.blink{animation:blink 2s ease-in-out infinite}
+.dot.breathe{animation:blink 3s ease-in-out infinite;--c:#f2f4fa}
+@keyframes blink{50%{opacity:.25}}
+@media (prefers-reduced-motion:reduce){.dot.blink,.dot.breathe{animation:none}}
+@media (max-width:860px){.hw-grid{grid-template-columns:1fr;gap:40px}}
+@media (max-width:520px){.specs{grid-template-columns:1fr}}
+
+/* ------------------------------------------------ Налаштування */
+.steps{list-style:none;counter-reset:s;margin:48px 0 0;padding:0;display:grid;grid-template-columns:repeat(4,1fr);gap:28px}
+.steps li{counter-increment:s;border-top:3px solid var(--ink);padding-top:18px}
+.steps li::before{content:counter(s);font-family:Unbounded,sans-serif;font-weight:700;font-size:28px;display:block;margin-bottom:10px}
+.steps h3{font-size:17px;margin-bottom:8px}
+.steps p{color:var(--muted);font-size:16px}
+@media (max-width:860px){.steps{grid-template-columns:1fr 1fr}}
+@media (max-width:520px){.steps{grid-template-columns:1fr}}
+
+/* ------------------------------------------------ Сумісність */
+.compat{background:var(--white)}
+.cols{display:grid;grid-template-columns:repeat(3,1fr);gap:40px;margin-top:48px}
+.cols h3{font-size:17px;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.cols h3::before{content:"";width:12px;height:12px;border-radius:50%;background:var(--c)}
+.cols ul{margin:0;padding-left:20px;color:var(--muted);display:grid;gap:10px}
+.cols li::marker{color:var(--line)}
+@media (max-width:860px){.cols{grid-template-columns:1fr;gap:32px}}
+
+/* ------------------------------------------------ Питання */
+.faq .wrap{display:grid;grid-template-columns:.8fr 1.2fr;gap:64px}
+details{border-bottom:1px solid var(--line);padding:20px 0}
+details:first-child{border-top:1px solid var(--line)}
+summary{cursor:pointer;font-weight:600;font-size:18px;list-style:none;display:flex;justify-content:space-between;gap:20px}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";font-family:Unbounded,sans-serif;font-weight:500;transition:transform .2s}
+details[open] summary::after{transform:rotate(45deg)}
+details p{margin-top:12px;color:var(--muted);max-width:62ch}
+@media (max-width:860px){.faq .wrap{grid-template-columns:1fr;gap:32px}}
+
+/* ------------------------------------------------ Бета */
+.beta{background:var(--case);padding:88px 0}
+.beta .wrap{display:grid;grid-template-columns:1.2fr .8fr;gap:48px;align-items:center}
+.beta h2{max-width:16ch}
+.beta p{margin-top:18px;max-width:52ch;font-size:18px}
+.beta ul{margin:18px 0 0;padding-left:20px;font-size:17px;display:grid;gap:6px}
+.beta .btn{font-size:18px;padding:18px 28px;background:var(--ink);color:#fff;justify-self:start}
+@media (max-width:860px){.beta .wrap{grid-template-columns:1fr}}
+
+footer{padding:40px 0;font-size:14px;color:var(--muted)}
+footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
+footer .made{display:inline-flex;align-items:center;gap:6px}
+.heart{width:16px;height:15px;transform-origin:center;animation:beat 1.2s ease-in-out infinite}
+@keyframes beat{0%,40%,100%{transform:scale(1)}10%{transform:scale(1.25)}20%{transform:scale(1.05)}30%{transform:scale(1.2)}}
+@media (prefers-reduced-motion:reduce){.heart{animation:none}}
+
+/* ------------------------------------------------ Сценарії */
+.scen .head .lead{margin-top:20px}
+.cases{display:grid;gap:28px;margin-top:48px}
+.case{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);background:var(--white);border-radius:var(--radius-l);overflow:hidden;border:1px solid var(--line)}
+.meme{display:grid;grid-auto-rows:1fr;min-height:300px;font-family:Unbounded,sans-serif;font-weight:500;font-size:17px;line-height:1.3}
+.meme .p{display:flex;align-items:center;gap:18px;padding:24px 26px}
+.meme .e{font-size:54px;line-height:1;flex:none;font-family:system-ui,sans-serif}
+.meme .p small{display:block;font-family:"Golos Text",sans-serif;font-size:13px;font-weight:600;opacity:.7;margin-bottom:4px}
+.meme .bad{background:#2b2238;color:#f3eefc}
+.meme .good{background:#fff7d6;color:var(--ink)}
+.meme.nobody{grid-auto-rows:auto;align-content:center;gap:14px;padding:30px 28px;background:var(--night);color:#e8ecf5}
+.meme.nobody p{margin:0}
+.meme.nobody .tg-line{margin-top:8px;background:#fff;color:var(--ink);font-family:"Golos Text",sans-serif;font-weight:400;font-size:15px;border-radius:14px 14px 14px 5px;padding:10px 14px;justify-self:start}
+.recipe{padding:30px 32px}
+.recipe h3{font-size:22px}
+.recipe>p{color:var(--muted);margin-top:10px;max-width:52ch}
+.rules{display:grid;gap:12px;margin-top:20px}
+.rule{margin:0;background:var(--paper);border-radius:16px;padding:14px 18px;display:grid;grid-template-columns:76px minmax(0,1fr);gap:6px 12px;font-size:15px}
+.rule dt{color:var(--muted);font-weight:500}
+.rule dd{margin:0;font-weight:500}
+.need{margin-top:16px;font-size:14px;color:var(--muted)}
+.need b{color:var(--ink);font-weight:600}
+.housechat{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:40px;align-items:center;margin-top:28px;background:var(--white);border-radius:var(--radius-l);border:1px solid var(--line);padding:32px}
+.housechat .chat{gap:8px}
+.housechat .msg b{display:block;font-size:13px;color:var(--tg);font-weight:600}
+.housechat .msg.me .fwd{display:block;border-left:3px solid var(--tg);padding-left:10px;margin-top:2px}
+.housechat .msg.me .fwd small{display:block;color:var(--tg);font-size:12px;font-weight:600}
+.housechat h3{font-size:22px}
+.housechat p{color:var(--muted);margin-top:10px}
+@media (max-width:860px){
+  .case,.housechat{grid-template-columns:minmax(0,1fr)}
+  .meme{min-height:0}
+  .recipe{padding:24px 22px}
+  .housechat{padding:22px}
+}
+</style>
+</head>
+<body class="is-off" style="--led:var(--off)">
+
+<header class="top">
+  <div class="wrap">
+    <a class="logo" href="#"><i aria-hidden="true"></i>Світлик</a>
+    <nav aria-label="Розділи">
+      <a class="link" href="#two">Як працює</a>
+      <a class="link" href="#home">Розумний дім</a>
+      <a class="link" href="#scenarios">Сценарії</a>
+      <a class="link" href="#telegram">Telegram</a>
+      <a class="link" href="#compat">Сумісність</a>
+      <a class="btn btn-tg" href="#beta"><span class="long">Взяти участь у бета-тесті</span><span class="short">Бета-тест</span></a>
+    </nav>
+  </div>
+</header>
+
+<main>
+<!-- ================================================= Головний екран -->
+<section class="hero" aria-labelledby="hero-title">
+  <div class="wrap">
+    <div>
+      <h1 id="hero-title">Знає, що дали світло, раніше за вас</h1>
+      <p class="lead">Маленький пристрій, який підключається до інвертора Deye. Бачить напругу на кожній фазі й одразу пише в Telegram, а в розумному домі перемикає датчики. Ніякої хмари і жодних «мабуть, дали»: він знає точно.</p>
+      <div class="actions">
+        <a class="btn btn-tg js-tg" href="#beta"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M21.9 4.3 18.7 19.5c-.2 1.1-.9 1.3-1.8.8l-4.9-3.6-2.4 2.3c-.3.3-.5.5-1 .5l.3-5 9.1-8.2c.4-.4-.1-.6-.6-.2L6.2 13.2 1.4 11.7c-1-.3-1.1-1 .2-1.5L20.5 3c.9-.3 1.6.2 1.4 1.3Z"/></svg>Взяти участь у бета-тесті</a>
+        <span class="note">Для власників трифазних Deye</span>
+      </div>
+    </div>
+
+    <div class="stage">
+      <svg class="device" viewBox="0 0 440 250" role="img" aria-label="Світлик: жовтий корпус розміром із запальничку, зі світлодіодом стану">
+        <defs>
+          <radialGradient id="g" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#fff" stop-opacity=".9"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+          <linearGradient id="caseShade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd94f"/><stop offset="1" stop-color="#f0b81e"/></linearGradient>
+          <pattern id="holes" width="16" height="14" patternUnits="userSpaceOnUse"><circle cx="4" cy="4" r="2.6" fill="#c99410"/><circle cx="12" cy="11" r="2.6" fill="#c99410"/></pattern>
+        </defs>
+        <!-- бік -->
+        <path d="M30 70 Q30 30 70 30 H370 Q410 30 410 70 V200 Q410 240 370 240 H70 Q30 240 30 200Z" fill="var(--case-dark)" transform="translate(0,6)"/>
+        <!-- кришка -->
+        <path d="M30 70 Q30 30 70 30 H370 Q410 30 410 70 V190 Q410 230 370 230 H70 Q30 230 30 190Z" fill="url(#caseShade)"/>
+        <!-- перфорація над модулем -->
+        <rect x="62" y="62" width="200" height="136" rx="18" fill="url(#holes)"/>
+        <!-- світловод -->
+        <circle class="glow" cx="330" cy="128" r="46" style="filter:blur(14px)"/>
+        <circle cx="330" cy="128" r="15" fill="#b98a0c"/>
+        <circle class="led" cx="330" cy="128" r="11"/>
+        <circle cx="326" cy="124" r="4" fill="url(#g)"/>
+        <!-- три малі світлодіоди -->
+        <circle cx="300" cy="182" r="4.5" fill="#b98a0c"/><circle cx="318" cy="182" r="4.5" fill="#b98a0c"/><circle cx="336" cy="182" r="4.5" fill="#b98a0c"/>
+        <!-- роз'єм USB-C -->
+        <rect x="404" y="112" width="12" height="34" rx="5" fill="#7d838f"/>
+      </svg>
+
+      <div class="bubble" id="bubble" aria-live="polite">
+        <div class="from">Світлик</div>
+        <pre id="bubble-text">💡 - ON · 18:02 (не було 3 год 15 хв)
+🟢 229 V | 🟢 231 V | 🟢 230 V</pre>
+        <div class="time" id="bubble-time">18:02</div>
+      </div>
+
+      <button class="switch" id="switch" type="button" role="switch" aria-checked="true">
+        <span class="track"><span class="knob"></span></span>
+        <span id="switch-label">Світло є. Натисніть, щоб вимкнути</span>
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================= Дві мережі -->
+<section class="two" id="two" aria-labelledby="two-title">
+  <div class="wrap">
+    <div>
+      <h2 id="two-title">Світло в місті і світло у вашій квартирі — різні речі</h2>
+      <p class="lead">Коли світло повертається, інвертор ще хвилину-дві перевіряє мережу і тільки потім переводить квартиру на неї. Світлик бачить обидва моменти окремо.</p>
+      <p style="margin-top:20px">Тому бойлер чи обігрівач можна вмикати тоді, коли квартира справді живиться від мережі, а не за першим сигналом, поки все ще тягне з батареї.</p>
+      <p>Прості боти дізнаються про світло, пінгуючи роутер. Але роутер на резервній лінії працює завжди, тож такий бот або мовчить, або помиляється. Світлик читає напругу просто з інвертора.</p>
+    </div>
+
+    <figure class="timeline" aria-label="Приклад: світло повернулося о 18:02, квартира перейшла на мережу о 18:04">
+      <div class="row">
+        <div class="name">Мережа ззовні<small>світло в будинку</small></div>
+        <div class="bar"><span class="b-off" style="flex:2">немає</span><span class="b-on" style="flex:3">є з 18:02</span></div>
+      </div>
+      <div class="row">
+        <div class="name">Мережа вдома<small>від чого живиться квартира</small></div>
+        <div class="bar"><span class="b-bat" style="flex:2.6">батарея</span><span class="b-on" style="flex:2.4">мережа з 18:04</span></div>
+      </div>
+      <div class="axis"><span></span><div><span>17:58</span><span>18:02</span><span>18:04</span><span>18:06</span></div></div>
+      <figcaption class="caption">Справжній порядок подій: між «дали світло» і «квартира на мережі» минає час, і Світлик повідомляє про кожну подію окремо.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ================================================= Apple Дім -->
+<section class="home" id="home" aria-labelledby="home-title">
+  <div class="wrap">
+    <div class="head">
+      <h2 id="home-title">Три датчики у вашому розумному домі</h2>
+      <p class="lead">Світлик працює за Matter, відкритим стандартом розумного дому від Apple, Google, Amazon і Samsung. Додається за QR-кодом і працює локально, без чужих серверів. Нижче — як це виглядає в Apple Дім. Плитки реагують на перемикач угорі.</p>
+    </div>
+
+    <div class="tiles" aria-live="polite">
+      <div class="tile" id="tile-grid">
+        <span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg></span>
+        <div><b>Мережа ззовні</b><small id="tile-grid-state">Відчинено</small></div>
+      </div>
+      <div class="tile" id="tile-supply">
+        <span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3 2 11h3v9h5v-6h4v6h5v-9h3z"/></svg></span>
+        <div><b>Мережа вдома</b><small id="tile-supply-state">Відчинено</small></div>
+      </div>
+      <div class="tile active" id="tile-battery">
+        <span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16 6h-1V4h-6v2H8a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2Zm0 14H8v-6h8z"/></svg></span>
+        <div><b>Заряд батареї</b><small id="tile-battery-state">87 %</small></div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ================================================= Сценарії -->
+<section class="scen" id="scenarios" aria-labelledby="scen-title">
+  <div class="wrap">
+    <div class="head">
+      <h2 id="scen-title">Сценарії, які економлять батарею і нерви</h2>
+      <p class="lead">Кілька готових автоматизацій. Кожну налаштовуєте один раз у застосунку розумного дому, а далі все відбувається само. Для більшості достатньо розумної розетки.</p>
+    </div>
+
+    <div class="cases">
+      <article class="case">
+        <div class="meme" role="img" aria-label="Мем: без Світлика бойлер з'їв батарею за 40 хвилин, зі Світликом бойлер чекає на мережу">
+          <div class="p bad"><span class="e" aria-hidden="true">🪫</span><div><small>Без Світлика</small>Бойлер з'їв батарею за 40 хвилин, поки ви були в душі</div></div>
+          <div class="p good"><span class="e" aria-hidden="true">😌</span><div><small>Зі Світликом</small>Бойлер чемно чекає, поки квартира перейде на мережу</div></div>
+        </div>
+        <div class="recipe">
+          <h3>Бойлер, який знає своє місце</h3>
+          <p>Бойлер на 2 кВт — найпрожерливіший прилад у квартирі. Нехай гріє воду лише тоді, коли квартира вже живиться від міста, а не від батареї.</p>
+          <div class="rules">
+            <dl class="rule"><dt>Коли</dt><dd>«Мережа вдома» відкривається</dd><dt>Зробити</dt><dd>Увімкнути «Розетка бойлера»</dd></dl>
+            <dl class="rule"><dt>Коли</dt><dd>«Мережа вдома» зачиняється</dd><dt>Зробити</dt><dd>Вимкнути «Розетка бойлера»</dd></dl>
+          </div>
+          <p class="need"><b>Потрібно:</b> розумна розетка на 16 А або реле в щитку.</p>
+        </div>
+      </article>
+
+      <article class="case">
+        <div class="meme" role="img" aria-label="Мем: інвертор, коли світло зникло, а обігрівач і кондиціонер ще працюють, і інвертор зі Світликом">
+          <div class="p bad"><span class="e" aria-hidden="true">🥵</span><div><small>Інвертор без Світлика</small>Світло зникло, а обігрівач, кондиціонер і чайник досі думають, що все гаразд</div></div>
+          <div class="p good"><span class="e" aria-hidden="true">😎</span><div><small>Інвертор зі Світликом</small>Зайве вимкнулося саме за секунди</div></div>
+        </div>
+        <div class="recipe">
+          <h3>Світло зникло — зайве вимкнулося</h3>
+          <p>Щойно в місті зникає мережа, усе важке вимикається, а світло у вітальні приглушується. Інвертор не перевантажується, і батареї вистачає на довше.</p>
+          <div class="rules">
+            <dl class="rule"><dt>Коли</dt><dd>«Мережа ззовні» зачиняється</dd><dt>Зробити</dt><dd>Вимкнути «Обігрівач» і «Кондиціонер», світло у вітальні на 30 %</dd></dl>
+          </div>
+          <p class="need"><b>Потрібно:</b> розумні розетки або прилади, які вже є у вашому домі.</p>
+        </div>
+      </article>
+
+      <article class="case">
+        <div class="meme" role="img" aria-label="Мем: поки є світло, заряджаємо все">
+          <div class="p bad"><span class="e" aria-hidden="true">🔌</span><div><small>18:02, дали світло</small>Павербанки, самокат, ліхтарики й ноутбук стоять у черзі</div></div>
+          <div class="p good"><span class="e" aria-hidden="true">⚡</span><div><small>18:04</small>Вже заряджаються. Ви навіть не встали з дивана</div></div>
+        </div>
+        <div class="recipe">
+          <h3>Поки є світло — заряджаємо все</h3>
+          <p>Один подовжувач із зарядками на розумній розетці. Він вмикається тільки від мережі, тож павербанки не заряджаються від батареї інвертора, і їх не треба переставляти.</p>
+          <div class="rules">
+            <dl class="rule"><dt>Коли</dt><dd>«Мережа вдома» відкривається</dd><dt>Зробити</dt><dd>Увімкнути «Зарядна станція»</dd></dl>
+            <dl class="rule"><dt>Коли</dt><dd>«Мережа вдома» зачиняється</dd><dt>Зробити</dt><dd>Вимкнути «Зарядна станція»</dd></dl>
+          </div>
+          <p class="need"><b>Потрібно:</b> одна розумна розетка.</p>
+        </div>
+      </article>
+
+      <article class="case">
+        <div class="meme nobody" role="img" aria-label="Мем: ніхто, абсолютно ніхто, Світлик о третій ночі пише про низький заряд батареї">
+          <p>Ніхто:</p>
+          <p>Абсолютно ніхто:</p>
+          <p>Світлик о 3:12 ночі:</p>
+          <div class="tg-line">🪫 Низький заряд батареї: 19% (поріг 20%)</div>
+        </div>
+        <div class="recipe">
+          <h3>Батарея сідає — дім переходить на ощадний режим</h3>
+          <p>Заряд батареї в розумному домі — окремий датчик. Коли він падає нижче порога, вимикається все, без чого можна дожити до ранку, а адміни бота отримують попередження в Telegram.</p>
+          <div class="rules">
+            <dl class="rule"><dt>Коли</dt><dd>«Заряд батареї» нижче 30 лк (= 30 %)</dd><dt>Зробити</dt><dd>Вимкнути «Зарядна станція», «Телевізор», підсвітку</dd></dl>
+          </div>
+          <p class="need"><b>Потрібно:</b> нічого, крім Світлика. Поріг для Telegram задаєте в панелі.</p>
+        </div>
+      </article>
+    </div>
+
+    <div class="housechat">
+      <div class="chat" aria-label="Мем: чат будинку питає, чи є світло">
+        <span class="day">Чат будинку · 18:03</span>
+        <div class="msg"><b>Оксана, 3 під'їзд</b><pre>У вас є світло?</pre></div>
+        <div class="msg"><b>Петро Іванович</b><pre>а у вас?</pre></div>
+        <div class="msg"><b>Ігор</b><pre>на 5 поверсі начебто є, але блимає</pre></div>
+        <div class="msg"><b>Оксана, 3 під'їзд</b><pre>то є чи нема???</pre></div>
+        <div class="msg me"><span class="fwd"><small>Переслано від Світлик</small>💡 - ON · 18:02 (не було 3 год 15 хв)<br>🟢 229 V | 🟢 231 V | 🟢 230 V</span><div class="time">18:03</div></div>
+      </div>
+      <div>
+        <h3>Ви тепер головне джерело правди в чаті будинку</h3>
+        <p>Або підпишіть сусідів на свого бота: вони дізнаватимуться про світло тієї ж секунди, що й ви, і чат нарешті заспокоїться.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================= Telegram -->
+<section class="tg" id="telegram" aria-labelledby="tg-title">
+  <div class="wrap">
+    <div>
+      <h2 id="tg-title">Свій Telegram-бот для всієї родини</h2>
+      <p class="lead" style="margin-top:20px">У кожного Світлика свій бот. Родина й сусіди підписуються командою /start і отримують повідомлення, щойно щось змінилося.</p>
+      <ul class="list">
+        <li><b>Скільки не було світла.</b> Перше повідомлення після відключення пише, скільки воно тривало.</li>
+        <li><b>Історія.</b> Команда /history показує відключення за тиждень і за місяць.</li>
+        <li><b>Напруга фаз.</b> Видно, яка саме фаза зникла або просіла. Можна вимкнути, якщо не цікаво.</li>
+        <li><b>Заряд батареї для адмінів.</b> Попередження, коли заряд падає нижче порога, який ви задали.</li>
+        <li><b>Українська або англійська</b> — на вибір.</li>
+      </ul>
+    </div>
+
+    <div class="chat" aria-label="Приклад листування з ботом">
+      <span class="day">Сьогодні</span>
+      <div class="msg"><pre>🌚 - OFF · 14:47
+🔴 0 V | 🔴 0 V | 🔴 0 V
+🔋 98%</pre><div class="time">14:47</div></div>
+      <div class="msg"><pre>💡 - ON · 18:02 (не було 3 год 15 хв)
+🟢 229 V | 🟢 231 V | 🟢 230 V
+🔋 61%</pre><div class="time">18:02</div></div>
+      <div class="msg me"><pre>/history</pre><div class="time">18:05</div></div>
+      <div class="msg"><pre>📊 Відключення світла
+7 днів: 9 відключень, разом 27 год 40 хв
+30 днів: 31 відключення, разом 96 год 10 хв
+Найдовше: 6 год 05 хв</pre><div class="time">18:05</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================= Пристрій -->
+<section class="hw" aria-labelledby="hw-title">
+  <div class="wrap">
+    <h2 id="hw-title">Розміром із запальничку. Кріпиться на магнітах</h2>
+    <p class="lead">Корпус 70 × 37 × 12 мм із двома магнітами в дні: чіпляється до корпусу інвертора чи щитка. Живиться від звичайного USB-зарядного з резервної лінії, разом із роутером.</p>
+
+    <div class="hw-grid">
+      <div class="specs">
+        <div><h3>Видно без телефона</h3><p>Кольоровий світлодіод показує стан мережі. Вночі сам гасне, щоб не світити в спальні.</p></div>
+        <div><h3>Оновлюється сам</h3><p>Нові версії приходять по Wi-Fi. Якщо оновлення не запрацювало, пристрій сам повертається до попередньої версії.</p></div>
+        <div><h3>Налаштування з телефона</h3><p>Веб-панель у домашній мережі: Wi-Fi, інвертор, бот, Дім, яскравість світлодіода. Українською або англійською.</p></div>
+        <div><h3>Резервна копія</h3><p>Один файл із налаштуваннями, підписниками й історією. Нова плата підхоплює все за хвилину.</p></div>
+        <div><h3>Ваші дані лишаються у вас</h3><p>Ми дбаємо про вашу приватність: налаштування, історія відключень і список підписників зберігаються лише на самому пристрої. Ми нічого не збираємо, реєструвати акаунт не треба.</p></div>
+        <div><h3>Пам'ятає стан</h3><p>Після перезавантаження не розсилає зайвих «є світло» і не скидає датчики в Домі.</p></div>
+      </div>
+
+      <div class="leds">
+        <h3>Що означає колір</h3>
+        <ul>
+          <li><span class="dot" style="--c:var(--on)"></span>Світло є на всіх фазах</li>
+          <li><span class="dot" style="--c:var(--partial)"></span>Світло є не на всіх фазах</li>
+          <li><span class="dot" style="--c:var(--off)"></span>Світла немає</li>
+          <li><span class="dot blink" style="--c:var(--lost)"></span>Інвертор не відповідає</li>
+          <li><span class="dot breathe"></span>Чекає налаштування Wi-Fi чи інвертора</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================= Налаштування -->
+<section class="setup" aria-labelledby="setup-title">
+  <div class="wrap">
+    <h2 id="setup-title">П'ять хвилин від коробки до першого повідомлення</h2>
+    <ol class="steps">
+      <li><h3>Увімкніть у розетку</h3><p>Ту, що живиться від інвертора, поруч із роутером: так Світлик працює і під час відключення.</p></li>
+      <li><h3>Підключіться з телефона</h3><p>Світлик створює свою мережу Wi-Fi. Панель налаштування відкривається сама, там вибираєте домашню мережу.</p></li>
+      <li><h3>Знайдіть інвертор</h3><p>Кнопка «Знайти логер» сама шукає Wi-Fi-логер інвертора в мережі. Вибираєте його, і все.</p></li>
+      <li><h3>Додайте бота і Дім</h3><p>Підказка покаже, як створити бота за хвилину. Для Дому скануєте QR-код із панелі.</p></li>
+    </ol>
+  </div>
+</section>
+
+<!-- ================================================= Сумісність -->
+<section class="compat" id="compat" aria-labelledby="compat-title">
+  <div class="wrap">
+    <h2 id="compat-title">Чи підійде вам</h2>
+    <div class="cols">
+      <div style="--c:var(--on)">
+        <h3>Працює з</h3>
+        <ul>
+          <li>Трифазними низьковольтними гібридами Deye: SUN-*K-SG04LP3 та SG05LP3</li>
+          <li>Wi-Fi-логером Solarman, який стоїть в інверторі</li>
+          <li>Домашньою мережею Wi-Fi 2,4 ГГц</li>
+          <li>Telegram на будь-якому телефоні</li>
+        </ul>
+      </div>
+      <div style="--c:var(--partial)">
+        <h3>Для розумного дому потрібні</h3>
+        <ul>
+          <li>Хаб Matter: HomePod, HomePod mini або Apple TV для Apple Дім</li>
+          <li>Для інших систем — їхній хаб із підтримкою Matter (Google Nest, SmartThings, Home Assistant тощо)</li>
+          <li>Перевірено з Apple Дім, з іншими системами перевіряємо в бета-тесті</li>
+          <li>Без хаба працює лише Telegram-бот</li>
+        </ul>
+      </div>
+      <div style="--c:var(--lost)">
+        <h3>Готуємо</h3>
+        <ul>
+          <li>Однофазні інвертори Deye</li>
+          <li>Інші інвертори: напишіть свою модель, і ми почнемо з тих, які найпоширеніші серед учасників бети</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================= Питання -->
+<section class="faq" aria-labelledby="faq-title">
+  <div class="wrap">
+    <h2 id="faq-title">Питання</h2>
+    <div>
+      <details>
+        <summary>Чим це краще за бот, який перевіряє роутер?</summary>
+        <p>Роутер зазвичай живиться від інвертора, тож під час відключення він працює, і бот думає, що світло є. Світлик бере дані напряму з інвертора: напругу кожної фази і стан реле мережі.</p>
+      </details>
+      <details>
+        <summary>У мене немає iPhone. Це мені підійде?</summary>
+        <p>Так. Telegram-бот працює сам по собі, а розумний дім — додатковий бонус.</p>
+      </details>
+      <details>
+        <summary>Чи працює з Google Home, SmartThings чи Home Assistant?</summary>
+        <p>Світлик — пристрій Matter, а Matter підтримують усі ці системи, тож його можна додати за тим самим QR-кодом. Повністю ми поки перевірили лише Apple Дім. Якщо у вас інша система, ви саме той бета-тестувальник, якого ми шукаємо.</p>
+      </details>
+      <details>
+        <summary>Чому під час додавання пише «несертифікований пристрій»?</summary>
+        <p>Офіційна сертифікація Matter платна, і на час бети ми її не проходимо. Пристрій працює так само, застосунок лише попереджає під час додавання.</p>
+      </details>
+      <details>
+        <summary>Чому заряд батареї в Домі показується в люксах?</summary>
+        <p>Apple Дім поки не вміє показувати заряд домашньої батареї й будувати на ньому автоматизації. Тому заряд передається як датчик освітленості: число люксів дорівнює відсоткам. Так з ним працюють автоматизації «нижче X».</p>
+      </details>
+      <details>
+        <summary>Чи потрібен інтернет?</summary>
+        <p>Для повідомлень у Telegram — так. Датчики в розумному домі оновлюються в домашній мережі, але щоб бачити їх поза домом, потрібен інтернет.</p>
+      </details>
+      <details>
+        <summary>Хто бачить мої дані?</summary>
+        <p>Лише ви і ті, кого ви підписали на бота. Ми дбаємо про вашу приватність, тому всі дані зберігаються тільки на самому Світлику: у нас немає серверів, куди б вони потрапляли, і ми нікому їх не передаємо. Повідомлення доходять до вас через Telegram, як і будь-які інші повідомлення в ньому, а датчики Matter працюють у вашій домашній мережі.</p>
+      </details>
+      <details>
+        <summary>Скільки коштує?</summary>
+        <p>Ціну оголосимо, коли почнемо продаж. Учасники бети дізнаються першими.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================= Бета -->
+<section class="beta" id="beta" aria-labelledby="beta-title">
+  <div class="wrap">
+    <div>
+      <h2 id="beta-title">Шукаємо перших тестувальників</h2>
+      <p>Напишіть у Telegram і розкажіть коротко:</p>
+      <ul>
+        <li>модель інвертора;</li>
+        <li>яким розумним домом користуєтесь (Apple Дім, Google Home, Home Assistant…) і чи є в ньому хаб;</li>
+        <li>місто.</li>
+      </ul>
+      <p>Від вас — кілька тижнів користування і чесний відгук про те, що незручно.</p>
+    </div>
+    <a class="btn js-tg" href="#"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M21.9 4.3 18.7 19.5c-.2 1.1-.9 1.3-1.8.8l-4.9-3.6-2.4 2.3c-.3.3-.5.5-1 .5l.3-5 9.1-8.2c.4-.4-.1-.6-.6-.2L6.2 13.2 1.4 11.7c-1-.3-1.1-1 .2-1.5L20.5 3c.9-.3 1.6.2 1.4 1.3Z"/></svg>Написати в Telegram</a>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span class="made">Світлик · зроблено в Україні <svg class="heart" viewBox="0 0 24 22" aria-hidden="true"><path fill="#e5484d" d="M12 21.4 10.6 20C5.4 15.4 2 12.3 2 8.5 2 5.4 4.4 3 7.5 3c1.7 0 3.4.8 4.5 2.1C13.1 3.8 14.8 3 16.5 3 19.6 3 22 5.4 22 8.5c0 3.8-3.4 6.9-8.6 11.5z"/></svg></span>
+    <span>Apple, HomePod, Apple TV — торговельні марки Apple Inc. Matter — торговельна марка Connectivity Standards Alliance. Google, Samsung SmartThings, Deye і Solarman — торговельні марки їхніх власників.</span>
+  </div>
+</footer>
+
+<script>
+/* ===== Налаштування: посилання на Telegram для бета-заявок ===== */
+const TELEGRAM_LINK = "https://t.me/YOUR_USERNAME";
+
+document.querySelectorAll(".js-tg").forEach(a => {
+  if (a.closest(".beta")) { a.href = TELEGRAM_LINK; a.target = "_blank"; a.rel = "noopener"; }
+});
+
+const states = {
+  on: {
+    led: "var(--on)",
+    text: "💡 - ON · 18:02 (не було 3 год 15 хв)\n🟢 229 V | 🟢 231 V | 🟢 230 V",
+    time: "18:02",
+    label: "Світло є. Натисніть, щоб вимкнути",
+    grid: "Відчинено", supply: "Відчинено", battery: "61 %"
+  },
+  off: {
+    led: "var(--off)",
+    text: "🌚 - OFF · 14:47\n🔴 0 V | 🔴 0 V | 🔴 0 V",
+    time: "14:47",
+    label: "Світла немає. Натисніть, щоб увімкнути",
+    grid: "Зачинено", supply: "Зачинено", battery: "98 %"
+  }
+};
+
+const $ = id => document.getElementById(id);
+const sw = $("switch"), bubble = $("bubble");
+let on = true;
+
+function apply(next, animate = true) {
+  on = next;
+  const s = on ? states.on : states.off;
+  document.body.classList.toggle("is-off", !on);
+  document.documentElement.style.setProperty("--led", s.led);
+  sw.setAttribute("aria-checked", String(on));
+  $("switch-label").textContent = s.label;
+  $("tile-grid").classList.toggle("active", on);
+  $("tile-supply").classList.toggle("active", on);
+  $("tile-grid-state").textContent = s.grid;
+  $("tile-supply-state").textContent = s.supply;
+  $("tile-battery-state").textContent = s.battery;
+  const write = () => { $("bubble-text").textContent = s.text; $("bubble-time").textContent = s.time; bubble.classList.remove("swap"); };
+  if (animate) { bubble.classList.add("swap"); setTimeout(write, 250); } else write();
+}
+
+sw.addEventListener("click", () => apply(!on));
+
+/* Сторінка відкривається «без світла», а потім його дають — один раз */
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+if (reduce) apply(true, false);
+else { apply(false, false); setTimeout(() => { if (!on) apply(true); }, 1600); }
+</script>
+</body>
+</html>
