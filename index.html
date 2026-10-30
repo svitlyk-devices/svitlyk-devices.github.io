@@ -651,7 +651,7 @@ footer .social:not(:has(a:not([hidden]))){display:none}
   <div class="wrap">
     <div>
       <h2 id="beta-title">Шукаємо перших тестувальників</h2>
-      <p>Напишіть нам у Telegram чи Instagram і розкажіть коротко:</p>
+      <p>Напишіть нам у <span id="contact-names">Telegram чи Instagram</span> і розкажіть коротко:</p>
       <ul>
         <li>модель інвертора;</li>
         <li>яким розумним домом користуєтесь (Apple Дім, Google Home, Home Assistant…) і чи є в ньому хаб;</li>
@@ -681,7 +681,7 @@ footer .social:not(:has(a:not([hidden]))){display:none}
    telegram і instagram — логіни без @. Кнопка Instagram відкриває одразу чат (ig.me/m/…),
    у футері — профіль Instagram і Threads (той самий логін). Порожнє значення ховає кнопку й посилання. */
 const CONTACTS = {
-  telegram: "",
+  telegram: "PavlenkoM",
   instagram: ""
 };
 
@@ -691,6 +691,11 @@ const contactUrl = {
   "instagram-profile": v => "https://www.instagram.com/" + v.replace(/^@/, "") + "/",
   threads: v => "https://www.threads.com/@" + v.replace(/^@/, "")
 };
+// Текст «Напишіть нам у …» називає лише месенджери, для яких вписано логін
+{
+  const names = [["telegram", "Telegram"], ["instagram", "Instagram"]].filter(([k]) => (CONTACTS[k] || "").trim()).map(([, n]) => n);
+  if (names.length) document.getElementById("contact-names").textContent = names.join(" чи ");
+}
 document.querySelectorAll("[data-contact]").forEach(a => {
   const key = a.dataset.contact;
   const v = (CONTACTS[key === "telegram" ? "telegram" : "instagram"] || "").trim(); // Threads і профіль — з логіна Instagram
