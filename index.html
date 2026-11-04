@@ -176,6 +176,78 @@ body.is-off .switch .knob{left:4px}
 .list b{font-weight:600}
 @media (max-width:860px){.tg .wrap{grid-template-columns:1fr;gap:40px}}
 
+/* ------------------------------------------------ СвітлоБот */
+.sbot{background:var(--night);color:#e8ecf5}
+.sbot .lead{color:#aab3c8;margin-top:20px;max-width:62ch}
+.sbot a{color:var(--case)}
+.modes{margin-top:44px;display:flex;flex-wrap:wrap;gap:14px 20px;align-items:center}
+.modes .seg{background:var(--night-2)}
+.modes .seg button{color:#aab3c8;font-size:15px;padding:8px 16px}
+.modes .seg button[aria-pressed="true"]{background:var(--case);color:var(--night);box-shadow:none}
+.flow{display:grid;grid-template-columns:minmax(0,.8fr) 56px minmax(0,1.2fr);align-items:center;margin-top:28px;max-width:900px}
+.targets .node{transition:opacity .3s ease,filter .3s ease,border-color .3s ease}
+.targets .node.dim{opacity:.28;filter:grayscale(1);border-style:dashed}
+.flow-note{margin-top:22px;max-width:62ch;color:#e8ecf5;font-size:17px;min-height:3.2em}
+.flow-note b{color:var(--case)}
+.node{background:var(--night-2);border-radius:20px;padding:18px 20px;border:1px solid rgba(255,255,255,.08)}
+.node b{display:block;font-family:Unbounded,sans-serif;font-weight:500;font-size:16px;color:#fff}
+.node small{display:block;color:#aab3c8;font-size:14px;margin-top:4px;line-height:1.4}
+.node.src{display:flex;gap:14px;align-items:center}
+.node.src i{flex:none;width:34px;height:22px;border-radius:7px;background:var(--case);position:relative}
+.node.src i::after{content:"";position:absolute;right:5px;top:7px;width:8px;height:8px;border-radius:50%;background:var(--on);box-shadow:0 0 8px var(--on)}
+.fork{position:relative;height:100%;min-height:200px}
+.fork::before{content:"";position:absolute;left:0;top:50%;width:50%;height:2px;background:#525b77}
+.fork::after{content:"";position:absolute;left:50%;top:25%;bottom:25%;width:28px;border:2px solid #525b77;border-right:0;border-radius:14px 0 0 14px}
+.targets{display:grid;gap:16px}
+.node.big{border-color:var(--case);box-shadow:0 0 0 1px var(--case) inset}
+.node .who{display:inline-block;margin-top:10px;font-size:13px;font-weight:600;color:var(--night);background:var(--case);border-radius:999px;padding:2px 10px}
+.node.fam .who{background:#3a4566;color:#e8ecf5}
+.perks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px 32px;margin-top:56px}
+.perks h3{font-size:16px;color:var(--case);margin-bottom:6px}
+.perks p{color:#c3cadb;font-size:16px}
+.sbot .how{margin-top:40px;color:#aab3c8;font-size:15px;border-top:1px solid rgba(255,255,255,.1);padding-top:20px}
+@media (max-width:760px){
+  .flow{grid-template-columns:minmax(0,1fr)}
+  .fork{min-height:36px}
+  .fork::before{left:50%;top:0;width:2px;height:100%}
+  .fork::after{display:none}
+  .perks{grid-template-columns:minmax(0,1fr)}
+}
+
+/* ------------------------------------------------ Історія в панелі */
+.hist{background:var(--white)}
+.hist .wrap{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:64px;align-items:start}
+.hist .lead{margin-top:20px}
+.panel{margin:0;background:var(--paper);border:1px solid var(--line);border-radius:var(--radius-l);padding:24px;display:grid;gap:22px}
+.panel .ptitle{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.panel .ptitle b{font-family:Unbounded,sans-serif;font-weight:500;font-size:17px}
+.seg{display:inline-flex;background:#e3e7ed;border-radius:999px;padding:3px}
+.seg button{font:inherit;font-size:14px;font-weight:500;border:0;background:none;color:var(--muted);padding:6px 12px;border-radius:999px;cursor:pointer;transition:background .2s,color .2s}
+.seg button[aria-pressed="true"]{background:var(--white);color:var(--ink);box-shadow:0 1px 3px rgba(20,26,46,.12)}
+.sbar{height:14px;border-radius:7px;display:flex;overflow:hidden;gap:2px;margin-top:4px}
+.sbar span{display:block;min-width:4px;transition:flex-grow .5s ease}
+.sbar .s-off{background:var(--off)}.sbar .s-par{background:var(--partial)}.sbar .s-on{background:var(--on)}
+.stotals{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:14px;font-size:14px;color:var(--muted)}
+.stotals b{display:block;color:var(--ink);font-size:16px;font-weight:600}
+.panel .sub{font-size:14px;color:var(--muted);margin-top:10px}
+.panel h4{margin:0 0 8px;font-size:14px;font-weight:600}
+.socchart{width:100%;height:auto;background:var(--white);border-radius:14px}
+.socchart .band-off{fill:var(--off);opacity:.16}.socchart .band-par{fill:var(--partial);opacity:.28}
+.socchart .grid{stroke:var(--line);stroke-width:1}
+.socchart .line{fill:none;stroke:var(--ink);stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}
+.socchart text{font:12px "Golos Text",sans-serif;fill:var(--muted)}
+.days{background:var(--white);border-radius:14px;padding:14px 16px}
+.days .pick{display:flex;justify-content:space-between;align-items:center;font-weight:600;font-size:15px;margin-bottom:10px}
+.days .pick span{color:var(--muted);font-weight:400}
+.days ul{list-style:none;margin:0;padding:0;display:grid;gap:8px;font-size:14px}
+.days li{display:grid;grid-template-columns:24px minmax(0,1fr);gap:6px}
+.days li small{display:block;color:var(--muted);font-size:13px}
+@media (max-width:860px){.hist .wrap{grid-template-columns:minmax(0,1fr);gap:40px}.panel{padding:18px}}
+@media (max-width:420px){.stotals{grid-template-columns:1fr}}
+
+.housechat .sb{margin-top:18px;padding-top:18px;border-top:1px solid var(--line)}
+.housechat .sb b{color:var(--ink)}
+
 /* ------------------------------------------------ Сам пристрій */
 .hw{background:var(--night);color:#e8ecf5}
 .hw .lead{color:#aab3c8;margin-top:20px}
@@ -491,6 +563,7 @@ footer .social:not(:has(a:not([hidden]))){display:none}
       <div>
         <h3>Ви тепер головне джерело правди в чаті будинку</h3>
         <p>Або підпишіть сусідів на свого бота: вони дізнаватимуться про світло тієї ж секунди, що й ви, і чат нарешті заспокоїться.</p>
+        <p class="sb"><b>Хочете на весь будинок?</b> Світлик може вести публічний канал вашої адреси в СвітлоБоті. <a href="#svitlobot">Як це працює</a></p>
       </div>
     </div>
   </div>
@@ -503,10 +576,12 @@ footer .social:not(:has(a:not([hidden]))){display:none}
       <h2 id="tg-title">Свій Telegram-бот для всієї родини</h2>
       <p class="lead" style="margin-top:20px">У кожного Світлика свій бот. Родина й сусіди підписуються командою /start і отримують повідомлення, щойно щось змінилося.</p>
       <ul class="list">
-        <li><b>Скільки не було світла.</b> Перше повідомлення після відключення пише, скільки воно тривало.</li>
-        <li><b>Історія.</b> Команда /history показує відключення за тиждень і за місяць.</li>
-        <li><b>Напруга фаз.</b> Видно, яка саме фаза зникла або просіла. Можна вимкнути, якщо не цікаво.</li>
-        <li><b>Заряд батареї для адмінів.</b> Попередження, коли заряд падає нижче порога, який ви задали.</li>
+        <li><b>Скільки не було світла.</b> Перше повідомлення після відключення пише, скільки воно тривало. Адміни бачать ще й витрату батареї: «витрачено 37 %, ≈ 0,7 кВт·год за годину».</li>
+        <li><b>Історія.</b> Команда /history: відключення за тиждень і за місяць, найдовше з них, час проблем з напругою і останні відключення списком.</li>
+        <li><b>Напруга фаз.</b> Команда /phases_on додає в повідомлення напругу кожної фази: видно, яка саме зникла або просіла.</li>
+        <li><b>Проблеми з напругою.</b> Коли світло є не на всіх фазах, інвертор не бере струм із мережі й працює від батареї. З /partial_on бот попереджає ⚠️ і про це, а не лише «є» чи «немає».</li>
+        <li><b>Для адмінів.</b> Заряд батареї в повідомленнях, попередження, коли він падає нижче вашого порога, і команда /status зі свіжими показами інвертора будь-коли.</li>
+        <li><b>Підписники під контролем.</b> У панелі видно всіх, хто підписався, з посиланням на профіль. Незнайомця можна видалити або заблокувати, і бот більше не відповідатиме йому.</li>
         <li><b>Українська або англійська</b> — на вибір.</li>
       </ul>
     </div>
@@ -516,15 +591,115 @@ footer .social:not(:has(a:not([hidden]))){display:none}
       <div class="msg"><pre>🌚 - OFF · 14:47
 🔴 0 V | 🔴 0 V | 🔴 0 V
 🔋 98%</pre><div class="time">14:47</div></div>
-      <div class="msg"><pre>💡 - ON · 18:02 (не було 3 год 15 хв)
+      <div class="msg"><pre>💡 - ON · 18:02 (не було 3 год 15 хв, витрачено 37 %, ≈ 0,7 кВт·год за годину)
 🟢 229 V | 🟢 231 V | 🟢 230 V
 🔋 61%</pre><div class="time">18:02</div></div>
       <div class="msg me"><pre>/history</pre><div class="time">18:05</div></div>
       <div class="msg"><pre>📊 Відключення світла
-7 днів: 9 відключень, разом 27 год 40 хв
-30 днів: 31 відключення, разом 96 год 10 хв
-Найдовше: 6 год 05 хв</pre><div class="time">18:05</div></div>
+7 днів: 9 відключень, разом 1 д 3 год
+⚠️ Проблеми з напругою: 2 год 15 хв
+30 днів: 31 відключення, разом 4 д
+Найдовше: 6 год 5 хв
+⚠️ Проблеми з напругою: 6 год 40 хв
+
+Останні:
+04.11 14:47 – 18:02 · 3 год 15 хв
+⚠️ 04.11 05:30 – 05:52 · 22 хв
+04.11 03:00 – 05:30 · 2 год 30 хв</pre><div class="time">18:05</div></div>
     </div>
+  </div>
+</section>
+
+<!-- ================================================= СвітлоБот -->
+<section class="sbot" id="svitlobot" aria-labelledby="sbot-title">
+  <div class="wrap">
+    <h2 id="sbot-title">Для родини, для всього будинку або для обох</h2>
+    <p class="lead">Свій бот — для родини й сусідів, яких ви знаєте. Якщо хочеться ширше, на весь під'їзд, будинок, ОСББ чи вулицю, Світлик уміє працювати з <a href="https://svitlobot.in.ua" target="_blank" rel="noopener">СвітлоБотом</a>. Це безкоштовний волонтерський сервіс із публічними Telegram-каналами для кожної адреси та мапою відключень по всій Україні.</p>
+
+    <div class="modes">
+      <div class="seg" role="group" aria-label="Як користуватися">
+        <button type="button" data-mode="bot" aria-pressed="false">Свій бот</button>
+        <button type="button" data-mode="sb" aria-pressed="false">СвітлоБот</button>
+        <button type="button" data-mode="both" aria-pressed="true">Разом</button>
+      </div>
+    </div>
+
+    <div class="flow" role="img" aria-label="Схема: Світлик надсилає повідомлення у свій бот для родини, сигнал у канал СвітлоБота для всього будинку, або в обидва одразу">
+      <div class="node src"><i aria-hidden="true"></i><div><b>Світлик</b><small>читає напругу з інвертора</small></div></div>
+      <div class="fork" aria-hidden="true"></div>
+      <div class="targets">
+        <div class="node fam" id="t-bot"><b>Ваш Telegram-бот</b><small>Деталі: напруга фаз, історія, батарея для адмінів</small><span class="who">родина й знайомі</span></div>
+        <div class="node big" id="t-sb"><b>Канал СвітлоБота</b><small>Коротко й для всіх: «Світло є» чи «Світла немає». А ще СвітлоБот показує відключення на мапі</small><span class="who">будинок, ОСББ, вулиця</span></div>
+      </div>
+    </div>
+
+    <p class="flow-note" id="flow-note" aria-live="polite"><b>Разом.</b> Родина отримує подробиці у вашому боті, а весь будинок — коротке «є / немає» в каналі СвітлоБота. Одне одному не заважає.</p>
+
+    <div class="perks">
+      <div><h3>Підписатися може будь-хто</h3><p>Посилання на канал кидаєте в чат будинку чи групу ОСББ або вішаєте QR-код біля ліфта. Сусідам не треба знати про ваш бот, а вам — когось додавати чи блокувати.</p></div>
+      <div><h3>Без старого смартфона і статичної IP</h3><p>Зазвичай для СвітлоБота тримають на зарядці старий смартфон або налаштовують перевірку роутера, для якої потрібна статична IP-адреса. Світлику нічого з цього не треба: він надсилає сигнал, лише поки інвертор бачить мережу.</p></div>
+      <div><h3>Разом або окремо</h3><p>Свій бот і СвітлоБот вмикаються в панелі незалежно. Можна лише одне з них або обидва, а передумати — будь-коли.</p></div>
+    </div>
+
+    <p class="how"><b>Як підключити:</b> у Telegram відкрийте @SvitloUkraineBot → «Створити свого СвітлоБота» → «Через старий смартфон / ESP», створіть канал для своєї адреси й скопіюйте ключ. Ключ вписуєте в панелі Світлика, і за хвилину канал запрацює.</p>
+  </div>
+</section>
+
+<!-- ================================================= Історія -->
+<section class="hist" id="history" aria-labelledby="hist-title">
+  <div class="wrap">
+    <div>
+      <h2 id="hist-title">Уся історія світла — у вашому телефоні</h2>
+      <p class="lead">Веб-панель Світлика рахує, скільки світла не було, скільки були проблеми з напругою і як поводилася батарея. Відкривається з телефона в домашній мережі.</p>
+      <ul class="list">
+        <li><b>Сьогодні, 7 і 30 днів.</b> Час у трьох станах: світла немає, світло не на всіх фазах, світло є. Кількість відключень і найдовше з них.</li>
+        <li><b>Графік заряду батареї</b> за добу або за тиждень, зі смугами відключень. Видно, на скільки вистачає батареї і як швидко вона заряджається.</li>
+        <li><b>По днях.</b> Вибираєте дату й бачите кожне відключення: коли почалося, скільки тривало і скільки батареї з'їло.</li>
+        <li><b>До 1000 записів</b> на самому пристрої. Історія переїжджає на нову плату разом із резервною копією.</li>
+      </ul>
+    </div>
+
+    <figure class="panel" aria-label="Приклад вкладки «Історія» у веб-панелі">
+      <div>
+        <div class="ptitle">
+          <b>Відключення світла</b>
+          <div class="seg" role="group" aria-label="Період">
+            <button type="button" data-range="today" aria-pressed="true">Сьогодні</button>
+            <button type="button" data-range="week" aria-pressed="false">7 днів</button>
+            <button type="button" data-range="month" aria-pressed="false">30 днів</button>
+          </div>
+        </div>
+        <div class="sbar" aria-hidden="true"><span class="s-off" id="h-off-bar" style="flex-grow:345"></span><span class="s-par" id="h-par-bar" style="flex-grow:22"></span><span class="s-on" id="h-on-bar" style="flex-grow:953"></span></div>
+        <div class="stotals" aria-live="polite">
+          <div>🌚 без світла<b id="h-off">5 год 45 хв</b></div>
+          <div>⚠️ проблеми з напругою<b id="h-par">22 хв</b></div>
+          <div>💡 зі світлом<b id="h-on">15 год 53 хв</b></div>
+        </div>
+        <p class="sub" id="h-sub">2 відключення · найдовше 3 год 15 хв</p>
+      </div>
+
+      <div>
+        <h4>Заряд батареї · 24 год</h4>
+        <svg class="socchart" viewBox="0 0 480 150" role="img" aria-label="Графік заряду: двічі за добу батарея розряджалася під час відключень і заряджалася після них">
+          <rect class="band-off" x="100" y="16" width="50" height="106"/>
+          <rect class="band-par" x="150" y="16" width="7" height="106"/>
+          <rect class="band-off" x="335" y="16" width="66" height="106"/>
+          <line class="grid" x1="0" y1="22" x2="480" y2="22"/><line class="grid" x1="0" y1="72" x2="480" y2="72"/><line class="grid" x1="0" y1="122" x2="480" y2="122"/>
+          <polyline class="line" points="0,23 100,23 150,40 157,42 200,23 335,24 401,59 470,23 480,23"/>
+          <text x="6" y="16">100 %</text><text x="6" y="66">50 %</text>
+          <text x="2" y="142">22:00</text><text x="104" y="142">03:00</text><text x="335" y="142">14:47</text><text x="440" y="142">22:00</text>
+        </svg>
+      </div>
+
+      <div class="days">
+        <div class="pick"><span aria-hidden="true">‹</span>По днях · Сьогодні<span aria-hidden="true">›</span></div>
+        <ul>
+          <li><span>🌚</span><div>03:00 – 05:30 · 2 год 30 хв<small>витрачено 18 %, ≈ 0,5 кВт·год за годину</small></div></li>
+          <li><span>⚠️</span><div>05:30 – 05:52 · 22 хв<small>світло не на всіх фазах, працює батарея</small></div></li>
+          <li><span>🌚</span><div>14:47 – 18:02 · 3 год 15 хв<small>витрачено 37 %, ≈ 0,7 кВт·год за годину</small></div></li>
+        </ul>
+      </div>
+    </figure>
   </div>
 </section>
 
@@ -537,7 +712,7 @@ footer .social:not(:has(a:not([hidden]))){display:none}
     <div class="hw-grid">
       <div class="specs">
         <div><h3>Видно без телефона</h3><p>Кольоровий світлодіод показує стан мережі. Вночі сам гасне, щоб не світити в спальні.</p></div>
-        <div><h3>Оновлюється сам</h3><p>Нові версії приходять по Wi-Fi. Якщо оновлення не запрацювало, пристрій сам повертається до попередньої версії.</p></div>
+        <div><h3>Оновлюється сам</h3><p>Нові версії приходять по Wi-Fi, а адміни бота дізнаються про них у Telegram. Якщо оновлення не запрацювало, пристрій сам повертається до попередньої версії.</p></div>
         <div><h3>Налаштування з телефона</h3><p>Веб-панель у домашній мережі: Wi-Fi, інвертор, бот, Дім, яскравість світлодіода. Українською або англійською.</p></div>
         <div><h3>Резервна копія</h3><p>Один файл із налаштуваннями, підписниками й історією. Нова плата підхоплює все за хвилину.</p></div>
         <div><h3>Ваші дані лишаються у вас</h3><p>Ми дбаємо про вашу приватність: налаштування, історія відключень і список підписників зберігаються лише на самому пристрої. Ми нічого не збираємо, реєструвати акаунт не треба.</p></div>
@@ -591,7 +766,7 @@ footer .social:not(:has(a:not([hidden]))){display:none}
           <li>Хаб Matter: HomePod, HomePod mini або Apple TV для Apple Дім</li>
           <li>Для інших систем — їхній хаб із підтримкою Matter (Google Nest, SmartThings, Home Assistant тощо)</li>
           <li>Перевірено з Apple Дім, з іншими системами перевіряємо в бета-тесті</li>
-          <li>Без хаба працює лише Telegram-бот</li>
+          <li>Без хаба працюють Telegram-бот і СвітлоБот</li>
         </ul>
       </div>
       <div style="--c:var(--lost)">
@@ -631,12 +806,16 @@ footer .social:not(:has(a:not([hidden]))){display:none}
         <p>Apple Дім поки не вміє показувати заряд домашньої батареї й будувати на ньому автоматизації. Тому заряд передається як датчик освітленості: число люксів дорівнює відсоткам. Так з ним працюють автоматизації «нижче X».</p>
       </details>
       <details>
+        <summary>Чи працює зі СвітлоБотом?</summary>
+        <p>Так. Створіть канал у @SvitloUkraineBot («Створити свого СвітлоБота» → «Через старий смартфон / ESP») і впишіть його ключ у панелі Світлика. Поки інвертор бачить мережу, Світлик щохвилини надсилає СвітлоБоту сигнал. Коли світла немає, він мовчить, і за кілька хвилин канал пише «Світла немає». Свій Telegram-бот можна залишити поруч або не налаштовувати зовсім: СвітлоБот працює і без нього.</p>
+      </details>
+      <details>
         <summary>Чи потрібен інтернет?</summary>
         <p>Для повідомлень у Telegram — так. Датчики в розумному домі оновлюються в домашній мережі, але щоб бачити їх поза домом, потрібен інтернет.</p>
       </details>
       <details>
         <summary>Хто бачить мої дані?</summary>
-        <p>Лише ви і ті, кого ви підписали на бота. Ми дбаємо про вашу приватність, тому всі дані зберігаються тільки на самому Світлику: у нас немає серверів, куди б вони потрапляли, і ми нікому їх не передаємо. Повідомлення доходять до вас через Telegram, як і будь-які інші повідомлення в ньому, а датчики Matter працюють у вашій домашній мережі.</p>
+        <p>Лише ви і ті, кого ви підписали на бота. Ми дбаємо про вашу приватність, тому всі дані зберігаються тільки на самому Світлику: у нас немає серверів, куди б вони потрапляли, і ми нікому їх не передаємо. Повідомлення доходять до вас через Telegram, як і будь-які інші повідомлення в ньому, а датчики Matter працюють у вашій домашній мережі. Якщо ви підключите СвітлоБот, його сервер отримуватиме лише сигнал «світло є».</p>
       </details>
       <details>
         <summary>Скільки коштує?</summary>
@@ -754,6 +933,33 @@ function apply(next, animate = true) {
 }
 
 sw.addEventListener("click", () => apply(!on));
+
+/* СвітлоБот: лише свій бот, лише СвітлоБот або разом */
+const modes = {
+  bot:  { bot: true,  sb: false, note: "<b>Лише свій бот.</b> Для родини й знайомих: напруга фаз, історія, батарея для адмінів. Ви самі вирішуєте, хто підписаний." },
+  sb:   { bot: false, sb: true,  note: "<b>Лише СвітлоБот.</b> Не хочете вести свій бот? Не треба: Світлик сам веде публічний канал вашої адреси. Ні токена, ні підписників, ні адмінів." },
+  both: { bot: true,  sb: true,  note: "<b>Разом.</b> Родина отримує подробиці у вашому боті, а весь будинок — коротке «є / немає» в каналі СвітлоБота. Одне одному не заважає." }
+};
+document.querySelectorAll(".modes button").forEach(b => b.addEventListener("click", () => {
+  const m = modes[b.dataset.mode];
+  document.querySelectorAll(".modes button").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+  $("t-bot").classList.toggle("dim", !m.bot);
+  $("t-sb").classList.toggle("dim", !m.sb);
+  $("flow-note").innerHTML = m.note;
+}));
+
+/* Приклад вкладки «Історія»: перемикач періоду (числа узгоджені з прикладами бота вище) */
+const ranges = {
+  today: { off: [345, "5 год 45 хв"], par: [22, "22 хв"], on: [953, "15 год 53 хв"], sub: "2 відключення · найдовше 3 год 15 хв" },
+  week:  { off: [1660, "1 д 3 год"], par: [135, "2 год 15 хв"], on: [8285, "5 д 18 год"], sub: "9 відключень · найдовше 4 год 50 хв" },
+  month: { off: [5770, "4 д 0 год"], par: [400, "6 год 40 хв"], on: [37030, "25 д 17 год"], sub: "31 відключення · найдовше 6 год 5 хв" }
+};
+document.querySelectorAll(".panel .seg button").forEach(b => b.addEventListener("click", () => {
+  const r = ranges[b.dataset.range];
+  document.querySelectorAll(".panel .seg button").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+  for (const k of ["off", "par", "on"]) { $("h-" + k + "-bar").style.flexGrow = r[k][0]; $("h-" + k).textContent = r[k][1]; }
+  $("h-sub").textContent = r.sub;
+}));
 
 /* Сторінка відкривається «без світла», а потім його дають — один раз */
 const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
